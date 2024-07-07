@@ -29,7 +29,7 @@ local function createGUI()
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.Position = UDim2.new(0, 0, 0, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.Text = "Mizuhara Tool Rejoin vision 0.3"
+    textLabel.Text = "Mizuhara vision 0.3"
     textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     textLabel.TextScaled = true
     textLabel.Parent = frame
@@ -56,6 +56,33 @@ local function sendClientInfo()
     -- Xác định loại client hiện tại
     local clientType = "unknown"  -- Có thể thay thế bằng logic xác định loại client nếu cần
 
+    -- Tự động xác định client type
+    if string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.client") then
+        clientType = "com.roblox.client"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienu") then
+        clientType = "com.roblox.clienu"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienv") then
+        clientType = "com.roblox.clienv"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienw") then
+        clientType = "com.roblox.clienw"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienx") then
+        clientType = "com.roblox.clienx"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.cliey") then
+        clientType = "com.roblox.cliey"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienz") then
+        clientType = "com.roblox.clienz"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienp") then
+        clientType = "com.roblox.clienp"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienq") then
+        clientType = "com.roblox.clienq"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienr") then
+        clientType = "com.roblox.clienr"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.cliens") then
+        clientType = "com.roblox.cliens"
+    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "RobloxClone") then
+        clientType = "RobloxClone"
+    end
+
     local clientInfo = {
         player = player.Name,
         userId = player.UserId,
@@ -66,8 +93,8 @@ local function sendClientInfo()
 
     local jsonData = HttpService:JSONEncode(clientInfo)
 
-    -- Đường dẫn đến file để lưu thông tin (Cần thay đường dẫn đúng)
-    local FILE_PATH = "C:\\path\\to\\roblox_info.json"
+    -- Đường dẫn đến file để lưu thông tin
+    local FILE_PATH = "/storage/emulated/0/roblox_info.json"
 
     -- Ghi thông tin vào file
     local success, err = pcall(function()
@@ -86,7 +113,7 @@ local function sendClientInfo()
 end
 
 -- Gọi function khi player vào game và cứ mỗi 3 phút
-game.Players.PlayerAdded:Connect(function(player)
+game:GetService("Players").PlayerAdded:Connect(function(player)
     sendClientInfo()
     while true do
         wait(180)  -- 3 phút
