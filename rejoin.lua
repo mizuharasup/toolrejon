@@ -1,4 +1,53 @@
--- Script đặt trong ServerScriptService
+-- Kiểm tra và sử dụng API của các loại exploit khác nhau
+local function executeWithExploit(exploitFunction)
+    local exploitAPIs = {"fluxus", "delta", "codex", "hydrogen", "arceus"}
+
+    for _, exploit in ipairs(exploitAPIs) do
+        if _G[exploit] then
+            exploitFunction(_G[exploit])
+            return
+        end
+    end
+
+    warn("No supported exploit found.")
+end
+
+-- Tạo và hiển thị GUI
+local function createGUI()
+    local Players = game:GetService("Players")
+    local player = Players.LocalPlayer
+    local PlayerGui = player:WaitForChild("PlayerGui")
+
+    -- Tạo một ScreenGui
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MizuharaVisionGUI"
+    screenGui.Parent = PlayerGui
+
+    -- Tạo một Frame để chứa các thành phần GUI khác
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 300, 0, 100)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -50)
+    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    frame.BackgroundTransparency = 0.5
+    frame.Parent = screenGui
+
+    -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3"
+    local textLabel = Instance.new("TextLabel")
+    textLabel.Size = UDim2.new(1, 0, 1, 0)
+    textLabel.Position = UDim2.new(0, 0, 0, 0)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Text = "Mizuhara vision 0.3"
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.TextScaled = true
+    textLabel.Parent = frame
+end
+
+-- Sử dụng exploit API để thực thi code
+executeWithExploit(function(exploit)
+    exploit.execute(createGUI)
+end)
+
+-- Tiếp tục phần xử lý khác (ví dụ: gửi thông tin về client)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 local ClientCheckEvent = Instance.new("RemoteEvent", ReplicatedStorage)
@@ -57,32 +106,6 @@ local function sendClientInfo()
         Platform = game:GetService("UserInputService").TouchEnabled and "Mobile" or "PC"
     }
     ClientCheckEvent:FireServer(clientInfo)
-
-    -- Tạo và hiển thị GUI
-    local PlayerGui = player:WaitForChild("PlayerGui")
-
-    -- Tạo một ScreenGui
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "MizuharaVisionGUI"
-    screenGui.Parent = PlayerGui
-
-    -- Tạo một Frame để chứa các thành phần GUI khác
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 100)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    frame.BackgroundTransparency = 0.5
-    frame.Parent = screenGui
-
-    -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3"
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, 0, 1, 0)
-    textLabel.Position = UDim2.new(0, 0, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = "Mizuhara vision 0.3"
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextScaled = true
-    textLabel.Parent = frame
 end
 
 -- Gọi function khi player vào game và cứ mỗi 3 phút
