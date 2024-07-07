@@ -29,7 +29,7 @@ local function createGUI()
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.Position = UDim2.new(0, 0, 0, 0)
     textLabel.BackgroundTransparency = 1
-    textLabel.Text = "Mizuhara vision 0.3"
+    textLabel.Text = "Mizuhara Tool Rejoin vision 0.3"
     textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     textLabel.TextScaled = true
     textLabel.Parent = frame
