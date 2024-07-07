@@ -1,4 +1,4 @@
--- Function để tạo và hiển thị GUI
+-- Function để tạo và hiển thị GUI với màu sắc cầu vồng và khả năng kéo thả
 local function createGUI()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
@@ -15,9 +15,11 @@ local function createGUI()
     frame.Position = UDim2.new(0.5, -150, 0.5, -50)
     frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     frame.BackgroundTransparency = 0.5
+    frame.Active = true
+    frame.Draggable = true
     frame.Parent = screenGui
 
-    -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3"
+    -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3" với màu sắc cầu vồng
     local textLabel = Instance.new("TextLabel")
     textLabel.Size = UDim2.new(1, 0, 1, 0)
     textLabel.Position = UDim2.new(0, 0, 0, 0)
@@ -26,70 +28,56 @@ local function createGUI()
     textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     textLabel.TextScaled = true
     textLabel.Parent = frame
+
+    -- Function để tạo màu sắc cầu vồng cho TextLabel
+    local function updateRainbowColor()
+        local hue = tick() % 10 / 10
+        local rainbowColor = Color3.fromHSV(hue, 1, 1)
+        textLabel.TextColor3 = rainbowColor
+    end
+
+    -- Vòng lặp để cập nhật màu sắc cầu vồng mỗi frame
+    game:GetService("RunService").RenderStepped:Connect(updateRainbowColor)
 end
 
 -- Gọi function tạo GUI trực tiếp vì Parent là PlayerGui không cần exploit protection
 createGUI()
 
--- Tiếp tục phần xử lý khác (ví dụ: gửi thông tin về client)
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local HttpService = game:GetService("HttpService")
-local ClientCheckEvent = Instance.new("RemoteEvent", ReplicatedStorage)
-ClientCheckEvent.Name = "ClientCheckEvent"
-
--- Đường dẫn đến file để lưu thông tin (Cần thay đường dẫn đúng)
-local FILE_PATH = "C:\\path\\to\\roblox_info.json"
-
--- Function để xác định loại client dựa trên một số logic (giả sử chúng ta có một biến môi trường hoặc một file cấu hình để kiểm tra)
-local function getClientType()
-    -- Giả sử bạn có một file cấu hình để xác định loại client
-    local clientTypeFile = "C:\\path\\to\\client_type.txt"
-    local file = io.open(clientTypeFile, "r")
-    if file then
-        local clientType = file:read("*a")
-        file:close()
-        return clientType:match("^%s*(.-)%s*$")  -- Loại bỏ khoảng trắng đầu và cuối
-    end
-    return "unknown"
-end
-
--- Function để xử lý thông tin từ client
-local function onClientInfoReceived(player, clientInfo)
-    local data = {
-        player = clientInfo.Name,
-        userId = clientInfo.UserId,
-        clientType = clientInfo.ClientType,
-        platform = clientInfo.Platform,
-        timestamp = os.time()
-    }
-
-    local jsonData = HttpService:JSONEncode(data)
-    
-    -- Ghi thông tin vào file
-    local file = io.open(FILE_PATH, "w")
-    if file then
-        file:write(jsonData)
-        file:close()
-    end
-end
-
--- Kết nối RemoteEvent với function xử lý
-ClientCheckEvent.OnServerEvent:Connect(onClientInfoReceived)
-
--- LocalScript phần gửi thông tin từ client
+-- Phần gửi thông tin từ client
 local function sendClientInfo()
+    local HttpService = game:GetService("HttpService")
     local player = game.Players.LocalPlayer
 
     -- Xác định loại client hiện tại
-    local clientType = getClientType()
+    local clientType = "unknown"  -- Có thể thay thế bằng logic xác định loại client nếu cần
 
     local clientInfo = {
-        Name = player.Name,
-        UserId = player.UserId,
-        ClientType = clientType,
-        Platform = game:GetService("UserInputService").TouchEnabled and "Mobile" or "PC"
+        player = player.Name,
+        userId = player.UserId,
+        clientType = clientType,
+        platform = game:GetService("UserInputService").TouchEnabled and "Mobile" or "PC",
+        timestamp = os.time()
     }
-    ClientCheckEvent:FireServer(clientInfo)
+
+    local jsonData = HttpService:JSONEncode(clientInfo)
+
+    -- Đường dẫn đến file để lưu thông tin (Cần thay đường dẫn đúng)
+    local FILE_PATH = "C:\\path\\to\\roblox_info.json"
+
+    -- Ghi thông tin vào file
+    local success, err = pcall(function()
+        local file = io.open(FILE_PATH, "w")
+        if file then
+            file:write(jsonData)
+            file:close()
+        else
+            warn("Cannot open file: " .. FILE_PATH)
+        end
+    end)
+
+    if not success then
+        warn("Error writing to file: " .. err)
+    end
 end
 
 -- Gọi function khi player vào game và cứ mỗi 3 phút
