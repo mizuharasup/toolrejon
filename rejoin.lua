@@ -1,18 +1,4 @@
--- Kiểm tra và sử dụng API của các loại exploit khác nhau
-local function executeWithExploit(exploitFunction)
-    local exploitAPIs = {"fluxus", "delta", "codex", "hydrogen", "arceus"}
-
-    for _, exploit in ipairs(exploitAPIs) do
-        if _G[exploit] then
-            exploitFunction(_G[exploit])
-            return
-        end
-    end
-
-    warn("No supported exploit found.")
-end
-
--- Tạo và hiển thị GUI
+-- Function để tạo và hiển thị GUI
 local function createGUI()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
@@ -42,10 +28,18 @@ local function createGUI()
     textLabel.Parent = frame
 end
 
--- Sử dụng exploit API để thực thi code
-executeWithExploit(function(exploit)
-    exploit.execute(createGUI)
-end)
+-- Thực thi script với các exploit hỗ trợ
+if syn then
+    syn.protect_gui = syn.protect_gui or function(gui) gui.Parent = game:GetService("CoreGui") end
+    syn.protect_gui(createGUI)
+elseif fluxus then
+    fluxus.protect_gui = fluxus.protect_gui or function(gui) gui.Parent = game:GetService("CoreGui") end
+    fluxus.protect_gui(createGUI)
+elseif gethui then
+    gethui(createGUI).Parent = game:GetService("CoreGui")
+else
+    createGUI()
+end
 
 -- Tiếp tục phần xử lý khác (ví dụ: gửi thông tin về client)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
