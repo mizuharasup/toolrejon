@@ -28,18 +28,8 @@ local function createGUI()
     textLabel.Parent = frame
 end
 
--- Thực thi script với các exploit hỗ trợ
-if syn then
-    syn.protect_gui = syn.protect_gui or function(gui) gui.Parent = game:GetService("CoreGui") end
-    syn.protect_gui(createGUI)
-elseif fluxus then
-    fluxus.protect_gui = fluxus.protect_gui or function(gui) gui.Parent = game:GetService("CoreGui") end
-    fluxus.protect_gui(createGUI)
-elseif gethui then
-    gethui(createGUI).Parent = game:GetService("CoreGui")
-else
-    createGUI()
-end
+-- Gọi function tạo GUI trực tiếp vì Parent là PlayerGui không cần exploit protection
+createGUI()
 
 -- Tiếp tục phần xử lý khác (ví dụ: gửi thông tin về client)
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
