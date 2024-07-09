@@ -1,4 +1,38 @@
--- Function để tạo và hiển thị GUI với màu sắc cầu vồng và khả năng kéo thả
+local function reduceLag()
+    -- Xóa hiệu ứng và vật cản
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") or obj:IsA("MeshPart") then
+            obj:Destroy()
+        elseif obj:IsA("BasePart") then
+            obj.Material = Enum.Material.SmoothPlastic
+            obj.Reflectance = 0
+            obj.CastShadow = false
+        elseif obj:IsA("Decal") or obj:IsA("Texture") then
+            obj:Destroy()
+        elseif obj:IsA("UnionOperation") or obj:IsA("Model") then
+            obj:Destroy()
+        end
+    end
+
+    -- Giảm chất lượng đồ họa
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
+    -- Chuyển chế độ đồ họa sang thủ công và đặt mức thấp nhất
+    local UserSettings = UserSettings()
+    local GameSettings = UserSettings.GameSettings
+    GameSettings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+    GameSettings.GraphicsMode = Enum.GraphicsMode.Manual
+end
+
+local function muteSound()
+    -- Giảm âm lượng xuống thấp nhất
+    for _, sound in pairs(workspace:GetDescendants()) do
+        if sound:IsA("Sound") then
+            sound.Volume = 0
+        end
+    end
+end
+
 local function createGUI()
     local Players = game:GetService("Players")
     local player = Players.LocalPlayer
@@ -16,13 +50,20 @@ local function createGUI()
 
     -- Tạo một Frame để chứa các thành phần GUI khác
     local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 100)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -50)
-    frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    frame.BackgroundTransparency = 0.5
+    frame.Size = UDim2.new(0, 300, 0, 200)
+    frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    frame.BackgroundTransparency = 1 -- Đặt trong suốt để chỉ hiển thị hình nền
     frame.Active = true
     frame.Draggable = true
     frame.Parent = screenGui
+
+    -- Tạo một ImageLabel để làm nền cho menu
+    local imageLabel = Instance.new("ImageLabel")
+    imageLabel.Size = UDim2.new(1, 0, 1, 0)
+    imageLabel.Position = UDim2.new(0, 0, 0, 0)
+    imageLabel.BackgroundTransparency = 0 -- Không trong suốt
+    imageLabel.Image = "rbxassetid://855088392"
+    imageLabel.Parent = frame
 
     -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3" với màu sắc cầu vồng
     local textLabel = Instance.new("TextLabel")
@@ -45,78 +86,9 @@ local function createGUI()
     game:GetService("RunService").RenderStepped:Connect(updateRainbowColor)
 end
 
--- Gọi function tạo GUI trực tiếp vì Parent là PlayerGui không cần exploit protection
+-- Gọi function tạo GUI trực tiếp
 createGUI()
 
--- Phần gửi thông tin từ client
-local function sendClientInfo()
-    local HttpService = game:GetService("HttpService")
-    local player = game.Players.LocalPlayer
-
-    -- Xác định loại client hiện tại
-    local clientType = "unknown"  -- Có thể thay thế bằng logic xác định loại client nếu cần
-
-    -- Tự động xác định client type
-    if string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.client") then
-        clientType = "com.roblox.client"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienu") then
-        clientType = "com.roblox.clienu"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienv") then
-        clientType = "com.roblox.clienv"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienw") then
-        clientType = "com.roblox.clienw"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienx") then
-        clientType = "com.roblox.clienx"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.cliey") then
-        clientType = "com.roblox.cliey"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienz") then
-        clientType = "com.roblox.clienz"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienp") then
-        clientType = "com.roblox.clienp"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienq") then
-        clientType = "com.roblox.clienq"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.clienr") then
-        clientType = "com.roblox.clienr"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "com.roblox.cliens") then
-        clientType = "com.roblox.cliens"
-    elseif string.find(game:GetService("RbxAnalyticsService"):GetClientId(), "RobloxClone") then
-        clientType = "RobloxClone"
-    end
-
-    local clientInfo = {
-        player = player.Name,
-        userId = player.UserId,
-        clientType = clientType,
-        platform = game:GetService("UserInputService").TouchEnabled and "Mobile" or "PC",
-        timestamp = os.time()
-    }
-
-    local jsonData = HttpService:JSONEncode(clientInfo)
-
-    -- Đường dẫn đến file để lưu thông tin
-    local FILE_PATH = "/storage/emulated/0/roblox_info.json"
-
-    -- Ghi thông tin vào file
-    local success, err = pcall(function()
-        local file = io.open(FILE_PATH, "w")
-        if file then
-            file:write(jsonData)
-            file:close()
-        else
-            warn("Cannot open file: " .. FILE_PATH)
-        end
-    end)
-
-    if not success then
-        warn("Error writing to file: " .. err)
-    end
-end
-
--- Gọi function khi player vào game và cứ mỗi 3 phút
-game:GetService("Players").PlayerAdded:Connect(function(player)
-    sendClientInfo()
-    while true do
-        wait(180)  -- 3 phút
-        sendClientInfo()
-    end
-end)
+-- Tự động giảm lag và tắt âm thanh khi script chạy
+reduceLag()
+muteSound()
