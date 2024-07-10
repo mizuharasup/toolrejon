@@ -1,19 +1,4 @@
 local function reduceLag()
-    -- Xóa hiệu ứng và vật cản
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") or obj:IsA("MeshPart") then
-            obj:Destroy()
-        elseif obj:IsA("BasePart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.Reflectance = 0
-            obj.CastShadow = false
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj:Destroy()
-        elseif obj:IsA("UnionOperation") or obj:IsA("Model") then
-            obj:Destroy()
-        end
-    end
-
     -- Giảm chất lượng đồ họa
     settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
 
@@ -57,14 +42,6 @@ local function createGUI()
     frame.Draggable = true
     frame.Parent = screenGui
 
-    -- Tạo một ImageLabel để làm nền cho menu
-    local imageLabel = Instance.new("ImageLabel")
-    imageLabel.Size = UDim2.new(1, 0, 1, 0)
-    imageLabel.Position = UDim2.new(0, 0, 0, 0)
-    imageLabel.BackgroundTransparency = 0 -- Không trong suốt
-    imageLabel.Image = "rbxassetid://855088392"
-    imageLabel.Parent = frame
-
     -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3" với màu sắc cầu vồng
     local textLabel = Instance.new("TextLabel")
     textLabel.Size = UDim2.new(1, 0, 1, 0)
@@ -86,9 +63,49 @@ local function createGUI()
     game:GetService("RunService").RenderStepped:Connect(updateRainbowColor)
 end
 
+local function sendUsernameToFile(username, client)
+    local HttpService = game:GetService("HttpService")
+    local filename = "/storage/emulated/0/usernames.txt"
+
+    -- Đọc nội dung hiện tại của file
+    local success, content = pcall(function()
+        return HttpService:GetAsync("file://" .. filename)
+    end)
+
+    local lines = {}
+    if success and content then
+        lines = content:split("\n")
+    end
+
+    -- Kiểm tra trùng lặp
+    local newEntry = username .. "/" .. client
+    for _, line in ipairs(lines) do
+        if line == newEntry then
+            print("Entry already exists: " .. newEntry)
+            return
+        end
+    end
+
+    -- Ghi thông tin vào file
+    table.insert(lines, newEntry)
+    local newContent = table.concat(lines, "\n")
+
+    -- Lưu lại nội dung mới vào file
+    pcall(function()
+        HttpService:PostAsync("file://" .. filename, newContent)
+    end)
+
+    print("Added entry: " .. newEntry)
+end
+
 -- Gọi function tạo GUI trực tiếp
 createGUI()
 
 -- Tự động giảm lag và tắt âm thanh khi script chạy
 reduceLag()
 muteSound()
+
+-- Gửi thông tin username và client_name
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+sendUsernameToFile(player.Name, "com.roblox.clienu") -- Thay đổi "com.roblox.clienu" bằng tên client tương ứng
