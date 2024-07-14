@@ -99,18 +99,10 @@ local function createGUI()
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0, 300, 0, 200)
     frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-    frame.BackgroundTransparency = 1 -- Đặt trong suốt để chỉ hiển thị hình nền
+    frame.BackgroundTransparency = 1 -- Đặt trong suốt
     frame.Active = true
     frame.Draggable = true
     frame.Parent = screenGui
-
-    -- Tạo một ImageLabel để làm nền cho menu
-    local imageLabel = Instance.new("ImageLabel")
-    imageLabel.Size = UDim2.new(1, 0, 1, 0)
-    imageLabel.Position = UDim2.new(0, 0, 0, 0)
-    imageLabel.BackgroundTransparency = 0 -- Không trong suốt
-    imageLabel.Image = "rbxassetid://855088392"
-    imageLabel.Parent = frame
 
     -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3" với màu sắc cầu vồng
     local textLabel = Instance.new("TextLabel")
