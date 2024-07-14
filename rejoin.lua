@@ -4,8 +4,7 @@ local lagReductionStore = DataStoreService:GetDataStore("LagReductionSettings")
 local function reduceLag()
     -- Ẩn hiệu ứng và vật cản
     for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") or obj:IsA("MeshPart") then
-            obj.Transparency = 1
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") then
             obj.Enabled = false
         elseif obj:IsA("BasePart") then
             obj.Material = Enum.Material.SmoothPlastic
@@ -45,8 +44,7 @@ local function restoreSettings()
 
     -- Hiển thị lại các đối tượng đã ẩn
     for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") or obj:IsA("MeshPart") then
-            obj.Transparency = 0
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") then
             obj.Enabled = true
         elseif obj:IsA("BasePart") then
             obj.Transparency = 0
