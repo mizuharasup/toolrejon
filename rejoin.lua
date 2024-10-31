@@ -155,7 +155,7 @@ local function createOrSlideInAvatarDisplay()
         end
 
         avatarFrame:TweenPosition(UDim2.new(1, -160, 1, -70), "Out", "Quad", 0.5, true)
-        wait(4)
+        wait(8)
         avatarFrame:TweenPosition(UDim2.new(1, 0, 1, -70), "In", "Quad", 0.5, true)
     end
 end
