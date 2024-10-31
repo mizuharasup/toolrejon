@@ -1,191 +1,163 @@
-local DataStoreService = game:GetService("DataStoreService")
-local lagReductionStore = DataStoreService:GetDataStore("LagReductionSettings")
+local function adjustGraphicsAndMuteSound()
+    pcall(function()
+        settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+    end)
 
-local function reduceLag()
-    -- Ẩn hiệu ứng và vật cản
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") then
-            obj.Enabled = false
-        elseif obj:IsA("BasePart") then
-            obj.Material = Enum.Material.SmoothPlastic
-            obj.Reflectance = 0
-            obj.CastShadow = false
-            obj.Transparency = 1
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj.Transparency = 1
-        elseif obj:IsA("UnionOperation") or obj:IsA("Model") then
-            for _, child in pairs(obj:GetDescendants()) do
-                if child:IsA("BasePart") or child:IsA("Decal") or child:IsA("Texture") then
-                    child.Transparency = 1
-                end
-            end
-        end
+    local success, message = pcall(function()
+        local UserSettings = UserSettings()
+        local GameSettings = UserSettings.GameSettings
+        GameSettings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
+        GameSettings.GraphicsMode = Enum.GraphicsMode.Manual
+    end)
+
+    if not success then
+        warn("Không thể thay đổi cài đặt đồ họa: " .. tostring(message))
     end
 
-    -- Giảm chất lượng đồ họa
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-
-    -- Chuyển chế độ đồ họa sang thủ công và đặt mức thấp nhất
-    local UserSettings = UserSettings()
-    local GameSettings = UserSettings.GameSettings
-    GameSettings.SavedQualityLevel = Enum.SavedQualitySetting.QualityLevel1
-    GameSettings.GraphicsMode = Enum.GraphicsMode.Manual
-end
-
-local function restoreSettings()
-    -- Khôi phục lại các cài đặt ban đầu của game (cần được tùy chỉnh phù hợp với cài đặt mặc định của game)
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-
-    -- Khôi phục chế độ đồ họa tự động
-    local UserSettings = UserSettings()
-    local GameSettings = UserSettings.GameSettings
-    GameSettings.SavedQualityLevel = Enum.SavedQualitySetting.Automatic
-    GameSettings.GraphicsMode = Enum.GraphicsMode.Automatic
-
-    -- Hiển thị lại các đối tượng đã ẩn
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Smoke") or obj:IsA("Fire") or obj:IsA("Sparkles") or obj:IsA("Light") then
-            obj.Enabled = true
-        elseif obj:IsA("BasePart") then
-            obj.Transparency = 0
-        elseif obj:IsA("Decal") or obj:IsA("Texture") then
-            obj.Transparency = 0
-        elseif obj:IsA("UnionOperation") or obj:IsA("Model") then
-            for _, child in pairs(obj:GetDescendants()) do
-                if child:IsA("BasePart") or child:IsA("Decal") or child:IsA("Texture") then
-                    child.Transparency = 0
-                end
-            end
-        end
-    end
-end
-
-local function muteSound()
-    -- Giảm âm lượng xuống thấp nhất
     for _, sound in pairs(workspace:GetDescendants()) do
         if sound:IsA("Sound") then
             sound.Volume = 0
         end
     end
-end
 
-local function unmuteSound()
-    -- Khôi phục âm lượng
-    for _, sound in pairs(workspace:GetDescendants()) do
-        if sound:IsA("Sound") then
-            sound.Volume = 1
+    workspace.DescendantAdded:Connect(function(descendant)
+        if descendant:IsA("Sound") then
+            descendant.Volume = 0
         end
-    end
-end
-
-local function createGUI()
-    local Players = game:GetService("Players")
-    local player = Players.LocalPlayer
-    local PlayerGui = player:WaitForChild("PlayerGui")
-
-    -- Kiểm tra xem GUI đã tồn tại hay chưa
-    if PlayerGui:FindFirstChild("MizuharaVisionGUI") then
-        return  -- Nếu GUI đã tồn tại, thoát function
-    end
-
-    -- Tạo một ScreenGui
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.Name = "MizuharaVisionGUI"
-    screenGui.Parent = PlayerGui
-
-    -- Tạo một Frame để chứa các thành phần GUI khác
-    local frame = Instance.new("Frame")
-    frame.Size = UDim2.new(0, 300, 0, 200)
-    frame.Position = UDim2.new(0.5, -150, 0.5, -100)
-    frame.BackgroundTransparency = 1 -- Đặt trong suốt
-    frame.Active = true
-    frame.Draggable = true
-    frame.Parent = screenGui
-
-    -- Tạo một TextLabel để hiển thị chữ "Mizuhara vision 0.3" với màu sắc cầu vồng
-    local textLabel = Instance.new("TextLabel")
-    textLabel.Size = UDim2.new(1, 0, 0.2, 0)
-    textLabel.Position = UDim2.new(0, 0, 0, 0)
-    textLabel.BackgroundTransparency = 1
-    textLabel.Text = "Mizuhara vision 0.3"
-    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    textLabel.TextScaled = true
-    textLabel.Parent = frame
-
-    -- Function để tạo màu sắc cầu vồng cho TextLabel
-    local function updateRainbowColor()
-        local hue = tick() % 10 / 10
-        local rainbowColor = Color3.fromHSV(hue, 1, 1)
-        textLabel.TextColor3 = rainbowColor
-    end
-
-    -- Vòng lặp để cập nhật màu sắc cầu vồng mỗi frame
-    game:GetService("RunService").RenderStepped:Connect(updateRainbowColor)
-
-    -- Tạo một nút để bật chế độ giảm lag
-    local enableButton = Instance.new("TextButton")
-    enableButton.Size = UDim2.new(0, 200, 0, 50)
-    enableButton.Position = UDim2.new(0.5, -100, 0.4, -25)
-    enableButton.Text = "Enable Lag Reduction"
-    enableButton.Parent = frame
-
-    -- Tạo một nút để tắt chế độ giảm lag
-    local disableButton = Instance.new("TextButton")
-    disableButton.Size = UDim2.new(0, 200, 0, 50)
-    disableButton.Position = UDim2.new(0.5, -100, 0.7, -25)
-    disableButton.Text = "Disable Lag Reduction"
-    disableButton.Parent = frame
-
-    local function saveLagReductionSetting(isEnabled)
-        local success, errorMessage = pcall(function()
-            lagReductionStore:SetAsync(tostring(player.UserId), isEnabled)
-        end)
-        if not success then
-            warn("Failed to save lag reduction setting: " .. errorMessage)
-        end
-    end
-
-    local function loadLagReductionSetting()
-        local success, isEnabled = pcall(function()
-            return lagReductionStore:GetAsync(tostring(player.UserId))
-        end)
-        if success then
-            return isEnabled
-        else
-            warn("Failed to load lag reduction setting")
-            return false
-        end
-    end
-
-    local function toggleLagReduction(isEnabled)
-        if isEnabled then
-            reduceLag()
-            muteSound()
-            enableButton.Visible = false
-            disableButton.Visible = true
-        else
-            restoreSettings()
-            unmuteSound()
-            enableButton.Visible = true
-            disableButton.Visible = false
-        end
-        saveLagReductionSetting(isEnabled)
-    end
-
-    enableButton.MouseButton1Click:Connect(function()
-        toggleLagReduction(true)
     end)
-
-    disableButton.MouseButton1Click:Connect(function()
-        toggleLagReduction(false)
-    end)
-
-    local isLagReductionEnabled = loadLagReductionSetting()
-    if isLagReductionEnabled == nil then
-        isLagReductionEnabled = false
-    end
-    toggleLagReduction(isLagReductionEnabled)
 end
 
--- Gọi function tạo GUI trực tiếp
-createGUI()
+adjustGraphicsAndMuteSound()
+
+local runService = game:GetService("RunService")
+runService.RenderStepped:Connect(function(deltaTime)
+    local fps = math.floor(1 / deltaTime)
+    if fps > 30 then
+        runService.RenderStepped:Wait()
+    end
+end)
+
+local function createOrUpdateFPSDisplay()
+    local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    
+    local fpsDisplay = playerGui:FindFirstChild("FPSDisplay")
+    if not fpsDisplay then
+        fpsDisplay = Instance.new("ScreenGui")
+        fpsDisplay.Name = "FPSDisplay"
+        fpsDisplay.ResetOnSpawn = false
+        fpsDisplay.Parent = playerGui
+
+        local displayFrame = Instance.new("Frame")
+        displayFrame.Size = UDim2.new(0, 200, 0, 80)
+        displayFrame.Position = UDim2.new(0.5, -100, 0, 10)
+        displayFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+        displayFrame.BackgroundTransparency = 0.3
+        displayFrame.BorderSizePixel = 0
+        displayFrame.Parent = fpsDisplay
+
+        local frameCorner = Instance.new("UICorner")
+        frameCorner.CornerRadius = UDim.new(0.1, 0)
+        frameCorner.Parent = displayFrame
+
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(1, -20, 0, 30)
+        nameLabel.Position = UDim2.new(0, 10, 0, 10)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        nameLabel.TextSize = 20
+        nameLabel.Font = Enum.Font.SourceSansBold
+        nameLabel.Text = player.Name
+        nameLabel.Parent = displayFrame
+
+        local fpsLabel = Instance.new("TextLabel")
+        fpsLabel.Size = UDim2.new(1, -20, 0, 30)
+        fpsLabel.Position = UDim2.new(0, 10, 0, 40)
+        fpsLabel.BackgroundTransparency = 1
+        fpsLabel.TextColor3 = Color3.new(1, 1, 1)
+        fpsLabel.TextSize = 18
+        fpsLabel.Font = Enum.Font.SourceSans
+        fpsLabel.Text = "FPS: Calculating..."
+        fpsLabel.Parent = displayFrame
+
+        while true do
+            fpsLabel.Text = "FPS: " .. math.floor(1 / runService.RenderStepped:Wait())
+            wait(1)
+        end
+    end
+end
+
+createOrUpdateFPSDisplay()
+
+local MarketplaceService = game:GetService("MarketplaceService")
+local gamePassID = 855088392
+
+local function createOrSlideInAvatarDisplay()
+    local player = game.Players.LocalPlayer
+    local playerGui = player:WaitForChild("PlayerGui")
+    local customUsername = "Mizuhara0.0"
+
+    local slideDisplay = playerGui:FindFirstChild("SlideAvatarDisplay")
+    if slideDisplay then
+        local avatarFrame = slideDisplay:FindFirstChild("AvatarFrame")
+        if avatarFrame then
+            avatarFrame:TweenPosition(UDim2.new(1, -160, 1, -70), "Out", "Quad", 0.5, true)
+            wait(4)
+            avatarFrame:TweenPosition(UDim2.new(1, 0, 1, -70), "In", "Quad", 0.5, true)
+            return
+        end
+    else
+        slideDisplay = Instance.new("ScreenGui")
+        slideDisplay.Name = "SlideAvatarDisplay"
+        slideDisplay.ResetOnSpawn = false
+        slideDisplay.Parent = playerGui
+
+        local avatarFrame = Instance.new("Frame")
+        avatarFrame.Name = "AvatarFrame"
+        avatarFrame.Size = UDim2.new(0, 150, 0, 60)
+        avatarFrame.Position = UDim2.new(1, 0, 1, -70)
+        avatarFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+        avatarFrame.BackgroundTransparency = 0.4
+        avatarFrame.BorderSizePixel = 0
+        avatarFrame.Parent = slideDisplay
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0.3, 0)
+        corner.Parent = avatarFrame
+
+        local nameLabel = Instance.new("TextLabel")
+        nameLabel.Size = UDim2.new(0, 80, 1, 0)
+        nameLabel.Position = UDim2.new(0, 60, 0, 0)
+        nameLabel.BackgroundTransparency = 1
+        nameLabel.TextColor3 = Color3.new(1, 1, 1)
+        nameLabel.TextSize = 18
+        nameLabel.Font = Enum.Font.SourceSansBold
+        nameLabel.Text = customUsername
+        nameLabel.Parent = avatarFrame
+
+        local success, productInfo = pcall(function()
+            return MarketplaceService:GetProductInfo(gamePassID, Enum.InfoType.GamePass)
+        end)
+
+        if success and productInfo then
+            local avatarImage = Instance.new("ImageLabel")
+            avatarImage.Size = UDim2.new(0, 40, 0, 40)
+            avatarImage.Position = UDim2.new(0, 5, 0, 10)
+            avatarImage.BackgroundTransparency = 1
+            avatarImage.Image = "rbxassetid://" .. productInfo.AssetId
+            avatarImage.Parent = avatarFrame
+
+            local avatarCorner = Instance.new("UICorner")
+            avatarCorner.CornerRadius = UDim.new(1, 0)
+            avatarCorner.Parent = avatarImage
+        else
+            warn("Không thể tải hình ảnh GamePass: " .. tostring(productInfo))
+        end
+
+        avatarFrame:TweenPosition(UDim2.new(1, -160, 1, -70), "Out", "Quad", 0.5, true)
+        wait(4)
+        avatarFrame:TweenPosition(UDim2.new(1, 0, 1, -70), "In", "Quad", 0.5, true)
+    end
+end
+
+createOrSlideInAvatarDisplay()
